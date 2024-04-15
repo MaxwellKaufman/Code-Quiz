@@ -1,6 +1,22 @@
-const quizContainer = document.getElementById("quiz");
-const resultsContainer = document.getElementById("results");
-const submitButton = document.getElementById("submit");
+// Selectors
+const select = (selector) => document.querySelector(selector);
+const selectAll = (selector) => document.querySelectorAll(selector);
+
+const elements = {
+  startButton: select("#start"),
+  questionSpace: select(".question"),
+  answers: selectAll(".answers button"),
+  scoreLocation: select(".score"),
+  retryButton: select(".retry"),
+  timeLeft: select(".time"),
+  finalDisplay: select(".score"),
+  submitButton: select(".enter"),
+  outOfTime: select(".OOT"),
+  input: select(".name"),
+};
+
+var score = 0;
+var secondsLeft = 60; // corrected variable name
 
 const questions = [
   {
@@ -34,3 +50,89 @@ const questions = [
     answer: 0,
   },
 ];
+
+// Event listeners
+elements.startButton.addEventListener("click", startQuiz);
+elements.answers.forEach((button) =>
+  button.addEventListener("click", answerQuestion)
+);
+elements.retryButton.addEventListener("click", resetQuiz);
+
+// Timer
+var timerInterval;
+
+function startTimer() {
+  timerInterval = setInterval(() => {
+    secondsLeft--;
+    elements.timeLeft.textContent = secondsLeft;
+    if (secondsLeft === 0) {
+      clearInterval(timerInterval);
+      timesUp();
+    }
+  }, 1000);
+}
+
+function stopTimer() {
+  clearInterval(timerInterval);
+}
+
+// Quiz
+let currentQuestionIndex = 0;
+
+function startQuiz() {
+  elements.questionSpace.style.display = "block"; // corrected element reference
+  elements.answers.forEach((button) => (button.style.display = "block"));
+  startTimer();
+  showQuestion(currentQuestionIndex);
+}
+
+function showQuestion(index) {
+  const question = questions[index];
+  elements.questionSpace.textContent = question.question;
+  question.answers.forEach((answer, i) => {
+    elements.answers[i].textContent = answer;
+  });
+}
+
+function answerQuestion(event) {
+  const clickedElement = event.target;
+  const selectedAnswer = clickedElement.textContent;
+  const correctIndex = questions[currentQuestionIndex].answer; // corrected variable name
+
+  if (
+    selectedAnswer === questions[currentQuestionIndex].answers[correctIndex]
+  ) {
+    score++;
+    elements.finalDisplay.textContent = "Correct: " + score;
+  } else {
+    secondsLeft -= 10;
+    elements.finalDisplay.textContent = "Wrong: " + score;
+  }
+
+  currentQuestionIndex++;
+  if (currentQuestionIndex < questions.length) {
+    showQuestion(currentQuestionIndex);
+  } else {
+    endQuiz();
+  }
+}
+
+function endQuiz() {
+  stopTimer();
+  elements.questionSpace.style.display = "none";
+  elements.answers.forEach((button) => (button.style.display = "none"));
+  elements.submitButton.style.display = "block";
+  elements.finalDisplay.textContent = "Score: " + score;
+}
+
+// Retry
+function resetQuiz() {
+  elements.scoreLocation.style.display = "none";
+  elements.outOfTime.style.display = "none";
+  elements.questionSpace.style.display = "block";
+  elements.finalDisplay.textContent = "";
+  score = 0;
+  secondsLeft = 60;
+  currentQuestionIndex = 0;
+  startQuiz();
+}
