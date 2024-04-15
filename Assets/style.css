@@ -1,0 +1,22 @@
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: grey;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 500px;
+}
+
+.container {
+  text-align: center;
+}
+
+#question {
+  margin-bottom: 20px;
+}
+
+#answers {
+  margin-bottom: 20px;
+}
