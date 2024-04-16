@@ -1,22 +1,43 @@
-// Selectors
-const select = (selector) => document.querySelector(selector);
-const selectAll = (selector) => document.querySelectorAll(selector);
-
-const elements = {
-  startButton: select("#start"),
-  questionSpace: select(".question"),
-  answers: selectAll(".answers button"),
-  scoreLocation: select(".score"),
-  retryButton: select(".retry"),
-  timeLeft: select(".time"),
-  finalDisplay: select(".score"),
-  submitButton: select(".enter"),
-  outOfTime: select(".OOT"),
-  input: select(".name"),
+// Constants for querySelectors
+const selectors = {
+  header: ".header",
+  startButton: "#start",
+  questionSpace: ".questionText",
+  answers: ".answers",
+  scoreLocation: ".score",
+  retryButton: ".retry",
+  timeLeft: ".timer",
+  message: ".message",
+  submit: ".submit",
+  finalScoreDisplay: "p",
+  submitButton: ".enter",
+  TimeIsUP: ".TIU",
+  Scores: "ul",
+  input: ".name",
+  retryButton: ".retry",
 };
 
-var score = 0;
-var secondsLeft = 60; // corrected variable name
+// Destructuring assignment to get selectors
+const {
+  header,
+  startButton,
+  questionSpace,
+  answers,
+  scoreLocation,
+  retryButton,
+  timeLeft,
+  message,
+  submit,
+  finalScoreDisplay,
+  submitButton,
+  TimeIsUP,
+  Scores,
+  input,
+} = selectors;
+
+// User input variables
+let score = 0;
+let scores = JSON.parse(localStorage.getItem("scores")) || [];
 
 const questions = [
   {
@@ -27,112 +48,162 @@ const questions = [
       "To convert a string to a number",
       "To concatenate strings",
     ],
-    answer: 1, // Index of the correct answer in the choices array (0-based index)
+    correct: 1, // Index of the correct answer in the choices array (0-based index)
   },
   {
     question: "What does the 'NaN' value represent in JavaScript?",
     answers: ["'Not a Number'", "Null", "Undefined", "Negative"],
-    answer: 0,
+    correct: 0,
   },
   {
     question: "What is the result of 5 + '5' in JavaScript?",
     answers: ["10", "'55'", "5", "Error"],
-    answer: 1,
+    correct: 1,
   },
   {
     question: "Which of the following is NOT a JavaScript data type?",
     answers: ["Array", "Object", "List", "String"],
-    answer: 2,
+    correct: 2,
   },
   {
     question: "What does the '&&' operator do in JavaScript?",
     answers: ["Logical AND", "Logical OR", "Logical NOT", "Bitwise AND"],
-    answer: 0,
+    correct: 0,
   },
 ];
 
+// Timer variables
+let timeStop = 0;
+let secondsLeft = 60;
+let timerInterval;
+
 // Event listeners
-elements.startButton.addEventListener("click", startQuiz);
-elements.answers.forEach((button) =>
-  button.addEventListener("click", answerQuestion)
-);
-elements.retryButton.addEventListener("click", resetQuiz);
+document.querySelector(startButton).addEventListener("click", startQuiz);
+document.querySelector(answers).addEventListener("click", changeQuestion);
+document.querySelector(submitButton).addEventListener("click", displayScore);
+document.querySelector(retryButton).addEventListener("click", resetQuiz);
 
-// Timer
-var timerInterval;
-
+// Functions for timer
 function startTimer() {
   timerInterval = setInterval(() => {
     secondsLeft--;
-    elements.timeLeft.textContent = secondsLeft;
+    document.querySelector(timeLeft).textContent = secondsLeft;
     if (secondsLeft === 0) {
       clearInterval(timerInterval);
-      timesUp();
+      stopTimer();
     }
   }, 1000);
 }
 
 function stopTimer() {
-  clearInterval(timerInterval);
+  if (timeStop === 0) {
+    timesUp();
+  }
 }
 
-// Quiz
-let currentQuestionIndex = 0;
+function timesUp() {
+  document.querySelector(TimeIsUP).textContent = "Time's Up!";
+  document.querySelector(TimeIsUP).style.display = "flex";
+  document.querySelector(questionSpace).style.display = "none";
+  document.querySelector(answers).style.display = "none";
+  document.querySelector(scoreLocation).style.display = "block";
+}
 
+// Functions for quiz
 function startQuiz() {
-  elements.questionSpace.style.display = "block"; // corrected element reference
-  elements.answers.forEach((button) => (button.style.display = "block"));
+  document.querySelector(header).style.display = "none";
+  document.querySelector(questionSpace).parentNode.style.display = "flex";
+  document.querySelector(answers).style.display = "block";
   startTimer();
-  showQuestion(currentQuestionIndex);
+  displayQuestion(questions[0]);
 }
 
-function showQuestion(index) {
-  const question = questions[index];
-  elements.questionSpace.textContent = question.question;
-  question.answers.forEach((answer, i) => {
-    elements.answers[i].textContent = answer;
+function changeQuestion(event) {
+  const target = event.target;
+  const currentQuestionIndex = questions.findIndex(
+    (question) =>
+      question.question === document.querySelector(questionSpace).textContent
+  );
+  const currentQuestion = questions[currentQuestionIndex];
+  const isCorrect =
+    target.textContent === currentQuestion.answers[currentQuestion.correct];
+
+  if (isCorrect) {
+    score++;
+    document.querySelector(message).textContent = `Correct: ${score}`;
+  } else {
+    secondsLeft -= 10;
+    document.querySelector(message).textContent = `Wrong: ${score}`;
+  }
+
+  if (currentQuestionIndex < questions.length - 1) {
+    const nextQuestion = questions[currentQuestionIndex + 1];
+    displayQuestion(nextQuestion);
+  } else {
+    finishQuiz();
+  }
+}
+
+function displayQuestion(question) {
+  document.querySelector(questionSpace).textContent = question.question;
+  question.answers.forEach((answer, index) => {
+    document.querySelector(`${answers} .answer-${index}`).textContent = answer;
   });
 }
 
-function answerQuestion(event) {
-  const clickedElement = event.target;
-  const selectedAnswer = clickedElement.textContent;
-  const correctIndex = questions[currentQuestionIndex].answer; // corrected variable name
+function finishQuiz() {
+  document.querySelector(questionSpace).parentNode.style.display = "none";
+  document.querySelector(answers).style.display = "none";
+  document.querySelector(submit).style.display = "block";
+  document.querySelector(retryButton).style.display = "block";
+  timeStop++;
 
-  if (
-    selectedAnswer === questions[currentQuestionIndex].answers[correctIndex]
-  ) {
-    score++;
-    elements.finalDisplay.textContent = "Correct: " + score;
-  } else {
-    secondsLeft -= 10;
-    elements.finalDisplay.textContent = "Wrong: " + score;
-  }
+  document.querySelector(finalScoreDisplay).textContent = `Score: ${score}`;
+}
 
-  currentQuestionIndex++;
-  if (currentQuestionIndex < questions.length) {
-    showQuestion(currentQuestionIndex);
-  } else {
-    endQuiz();
+// Function for scoring
+function displayScore(event) {
+  event.preventDefault();
+  const quizzerName = document.querySelector(input).value.trim();
+
+  if (quizzerName.length > 0) {
+    scores.push({ qName: quizzerName, score: score.toString() });
+    document.querySelector(submit).style.display = "none";
+    document.querySelector(scoreLocation).style.display = "block";
+    renderScoreBoard();
+    saveScores();
   }
 }
 
-function endQuiz() {
-  stopTimer();
-  elements.questionSpace.style.display = "none";
-  elements.answers.forEach((button) => (button.style.display = "none"));
-  elements.submitButton.style.display = "block";
-  elements.finalDisplay.textContent = "Score: " + score;
+function renderScoreBoard() {
+  const scoresList = document.querySelector(Scores);
+  scoresList.innerHTML = "";
+
+  scores.forEach((entry, index) => {
+    const li = document.createElement("li");
+    li.textContent = `Name: ${entry.qName}, Score: ${entry.score}`;
+    li.setAttribute("data-index", index);
+    scoresList.appendChild(li);
+  });
 }
 
-// Retry
+function saveScores() {
+  localStorage.setItem("scores", JSON.stringify(scores));
+}
+
+// Function to reset quiz
 function resetQuiz() {
-  elements.scoreLocation.style.display = "none";
-  elements.outOfTime.style.display = "none";
-  elements.questionSpace.style.display = "block";
-  elements.finalDisplay.textContent = "";
+  document.querySelector(scoreLocation).style.display = "none";
+  document.querySelector(TimeIsUP).style.display = "none";
+  document.querySelector(header).style.display = "block";
+  document.querySelector(finalScoreDisplay).textContent = "";
+  document.querySelector(input).value = "";
+  doncument.querySelector(retryButton).style.display = "none";
   score = 0;
   secondsLeft = 60;
-  currentQuestionIndex = 0;
-  startQuiz();
+  timeStop = 0;
+  document.querySelector(questionSpace).textContent = questions[0].question;
+  questions[0].answers.forEach((answer, index) => {
+    document.querySelector(`${answers} .answer-${index}`).textContent = answer;
+  });
 }
