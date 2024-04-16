@@ -7,20 +7,40 @@
     <title>JavaScriptQuiz</title>
   </head>
   <body>
-    <button id="start">Start</button>
-    <div class="container">
-      <h2>JavaScriptQuiz</h2>
-      <div class="question"></div>
-      <div class="answers">
-        <button></button>
-        <button></button>
-        <button></button>
-        <button></button>
+    <header class="header">
+      <h1>JavaScriptQuiz</h1>
+      <button class="start" id="start">Start</button>
+    </header>
+
+    <main>
+      <div class="question">
+        <h2>Question</h2>
+        <p class="questionText"></p>
+        <h3 class="timer"></h3>
+        <h4 class="message"></h4>
       </div>
-      <p class="time">Time remaining: <span id="time"></span></p>
-      <p class="score"></p>
-      <button class="retry">Would you like to try again?</button>
-    </div>
+
+      <div class="answers">
+        <h2>Answers</h2>
+        <button class="answer answer-0"></button>
+        <button class="answer answer-1"></button>
+        <button class="answer answer-2"></button>
+        <button class="answer answer-3"></button>
+      </div>
+
+      <div class="submit">
+        <input class="name" type="text" placeholder="Name" />
+        <button class="enter">Submit</button>
+      </div>
+
+      <div class="score">
+        <h2>Score</h2>
+        <h3 class="TIU"></h3>
+        <ul></ul>
+        <button class="retry">Try again</button>
+      </div>
+    </main>
+
     <script src="/script.js"></script>
   </body>
 </html>
